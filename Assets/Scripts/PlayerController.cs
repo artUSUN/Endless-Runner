@@ -20,7 +20,7 @@ public class PlayerController : MonoBehaviour
     {
         characterController = GetComponent<CharacterController>();
         animator = GetComponent<Animator>();
-        strafeAnimation = FindAnimationClipInAnimator(animator, "StrafeLeft"); 
+        strafeAnimation = FindAnimationClipInAnimator(animator, "RunningLeftTurn"); 
     }
 
     // Update is called once per frame
