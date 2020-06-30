@@ -5,26 +5,37 @@ using UnityEngine;
 
 public class GameWorldController : MonoBehaviour
 {
-    public GameObject startChunk;
-    [SerializeField] private Vector3 gameFieldRotationSpeed;
-
+    [SerializeField] public GameObject startChunk;
+    [SerializeField] private float gameFieldRotationSpeed = 1;
     [SerializeField] private GameObject[] chunkPrefabs;
 
     private List<GameObject> spawnedChunks = new List<GameObject>();
     private Transform centerOfGameField;
-    private Transform player;
+
+    //задел на разные длины чанков
+    private readonly float degreeOfRotationOfChunk = 5f;
+    private readonly float destroyAngle = 355f;
+    private readonly float spawnAngle = 20f;
 
     void Start()
     {
         centerOfGameField = transform;
-        player = GameObject.Find("Player").transform;
         spawnedChunks.Add(startChunk);
+
+        SpawnChunk(chunkPrefabs[1]);
     }
 
-    
+
     void Update()
     {
         GameFieldRotation();
+
+        SpawndAndDestroyChunk();
+
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            Debug.Log(spawnedChunks[0].transform.eulerAngles.x);
+        }
 
         if (Input.GetKeyDown(KeyCode.R))
         {
@@ -37,21 +48,40 @@ public class GameWorldController : MonoBehaviour
         }
     }
 
+    private void SpawndAndDestroyChunk()
+    {
+        if (spawnedChunks[0].transform.eulerAngles.x < destroyAngle)
+        {
+            DestroyOldestChunk();
+            SpawnChunk(chunkPrefabs[1]);
+        }
+
+        if (spawnedChunks[spawnedChunks.Count - 1].transform.eulerAngles.x < spawnAngle)
+        {
+            SpawnChunk(chunkPrefabs[1]);
+        }
+
+    }
+
     private void SpawnChunk(GameObject chunkPrefab)
     {
         GameObject newChunk = Instantiate(chunkPrefab, centerOfGameField.position, Quaternion.identity, centerOfGameField);
 
-        newChunk.transform.rotation = spawnedChunks[spawnedChunks.Count - 1].transform.rotation * Quaternion.Euler(5f, 0f, 0f);
+        newChunk.transform.rotation = spawnedChunks[spawnedChunks.Count - 1].transform.rotation * Quaternion.Euler(degreeOfRotationOfChunk, 0f, 0f);
 
         spawnedChunks.Add(newChunk);
-
-        //newChunk.transform.position = spawnedChunks[spawnedChunks.Count - 1].End.position - newChunk.Begin.localPosition;
-        //newChunk.transform.Rotate()
     }
+
+    private void DestroyOldestChunk()
+    {
+        Destroy(spawnedChunks[0].gameObject);
+        spawnedChunks.RemoveAt(0);
+    }
+    
 
     private void GameFieldRotation()
     {
-        centerOfGameField.Rotate(gameFieldRotationSpeed * Time.deltaTime);
+        centerOfGameField.Rotate(Vector3.left * gameFieldRotationSpeed * Time.deltaTime);
     }
 }
 
