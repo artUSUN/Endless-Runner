@@ -8,9 +8,9 @@ public class GameWorldController : MonoBehaviour
 {
     [SerializeField] private GameObject startChunk;
     [SerializeField] private GameObject[] chunkPrefabs;
-    [SerializeField] private float gameFieldRotationSpeed = 1;
+    [SerializeField] public float gameFieldRotationSpeed = 1;
 
-    private List<GameObject> spawnedChunks = new List<GameObject>();
+    private readonly List<GameObject> spawnedChunks = new List<GameObject>();
     private Transform centerOfGameField;
 
     [SerializeField] private Transform player;

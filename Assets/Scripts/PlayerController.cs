@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEditor.Animations;
 using UnityEngine;
 using UnityEngine.PlayerLoop;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
@@ -16,6 +17,8 @@ public class PlayerController : MonoBehaviour
     private Animator animator;
     private AnimationClip slideAnimationClip;
 
+    [SerializeField] private GameObject gameField;
+
     //задел на повышение сложности по мере игры
     [HideInInspector] public float gameDifficultyCoefficient = 1;
 
@@ -26,6 +29,8 @@ public class PlayerController : MonoBehaviour
     private bool canJump = true;
     private bool canSlide = true;
 
+    private CapsuleCollider highTriggerCollider;
+
 
     void Start()
     {
@@ -33,6 +38,8 @@ public class PlayerController : MonoBehaviour
         animator = GetComponent<Animator>();
 
         slideAnimationClip = FindAnimationClipInAnimator(animator, "RunningRoll");
+
+        highTriggerCollider = GetComponent<CapsuleCollider>();
     }
 
     
@@ -53,9 +60,9 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void FixedUpdate()
+    private void OnTriggerEnter(Collider other)
     {
- 
+        StartCoroutine(GameOver());
     }
 
     private void OffsetCondition()
@@ -141,10 +148,11 @@ public class PlayerController : MonoBehaviour
     IEnumerator JumpLogic()
     {
         animator.SetTrigger("JumpClick");
-
-        canSlide = true;
-
         _rb.AddForce(Vector3.up * jumpPower, ForceMode.Impulse);
+
+        StopCoroutine(SlideLogic());
+        highTriggerCollider.enabled = true;
+        canSlide = true;
 
         yield return new WaitForSeconds(0.1f);
 
@@ -153,6 +161,8 @@ public class PlayerController : MonoBehaviour
 
     IEnumerator SlideLogic()
     {
+        highTriggerCollider.enabled = false;
+
         animator.SetTrigger("SlideClick");
 
         if (!isPlayerGrounded)
@@ -165,7 +175,7 @@ public class PlayerController : MonoBehaviour
         yield return new WaitForSeconds(slideAnimationClip.length);
 
         canSlide = true;
-
+        highTriggerCollider.enabled = true;
     }
 
     private void FallingAnimationLogic()
@@ -187,6 +197,19 @@ public class PlayerController : MonoBehaviour
             return true;
         }
         else return false;
+    }
+
+    IEnumerator GameOver()
+    {
+        gameField.GetComponent<GameWorldController>().gameFieldRotationSpeed = 0;
+
+        animator.speed = 1;
+
+        animator.SetTrigger("Death");
+
+        yield return new WaitForSeconds(FindAnimationClipInAnimator(animator, "Fall").length);
+
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     /// <summary>
