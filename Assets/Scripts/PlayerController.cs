@@ -2,66 +2,61 @@
 using System.Collections.Generic;
 using UnityEditor.Animations;
 using UnityEngine;
+using UnityEngine.PlayerLoop;
 
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] private float offsetDistance = 1.55f;
+    [SerializeField] private float offsetDistance = 1.5f;
     [SerializeField] private float offsetDuration = 0.5f;
     [SerializeField] private float jumpPower = 1.1f;
     [SerializeField] private float movingSmooth = 60f;
-   
+
+    private Rigidbody _rb;
 
     private Animator animator;
-    private CharacterController characterController;
-    private AnimationClip strafeAnimation;
-
-    private Vector3 playerVelocity;
+    private AnimationClip slideAnimationClip;
 
     //задел на повышение сложности по мере игры
     [HideInInspector] public float gameDifficultyCoefficient = 1;
 
-    private float currentStrafeAnimationDuration;
     private float currentTrackPosition = 1; //0 - left, 1 - central, 2 - right
-    private float gravityValue = -9.81f;
-    private float player_zPosition;
 
     private bool isPlayerGrounded;
     private bool canOffset = true;
-    private bool needJump = false;
+    private bool canJump = true;
+    private bool canSlide = true;
 
 
     void Start()
     {
-        characterController = GetComponent<CharacterController>();
+        _rb = GetComponent<Rigidbody>();
         animator = GetComponent<Animator>();
 
-        strafeAnimation = FindAnimationClipInAnimator(animator, "RunningLeftTurn");
-
-        player_zPosition = characterController.transform.position.z;
+        slideAnimationClip = FindAnimationClipInAnimator(animator, "RunningRoll");
     }
 
     
     void Update()
     {
-        isPlayerGrounded = characterController.isGrounded;
-        //isPlayerGrounded = IsPlayerGrounded();
-
-        Debug.Log(characterController.collisionFlags == CollisionFlags.Below);
-
-        //FreezePos_Z();
-
+        isPlayerGrounded = IsPlayerGrounded();
+        
         OffsetCondition();
-        JumpCondition();
+        JumpAndSlideCondition();
 
         FallingAnimationLogic();
+
+        //задел на изменение сложности игры со временем
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            animator.speed += 0.01f;
+            gameDifficultyCoefficient += 0.1f;
+        }
     }
 
     private void FixedUpdate()
     {
-        JumpAndGravityLogic();
+ 
     }
-
-
 
     private void OffsetCondition()
     {
@@ -75,11 +70,8 @@ public class PlayerController : MonoBehaviour
             {
                 canOffset = false;
 
-                //задел для увеличения сложности игры путем изменения скорости
-                currentStrafeAnimationDuration = strafeAnimation.length / animator.speed;
-
-                StartCoroutine(OffsetAnimationLogic(direction));
                 StartCoroutine(OffsetLogic(direction));
+                StartCoroutine(OffsetAnimationLogic(direction));
             }
 
             else
@@ -88,12 +80,23 @@ public class PlayerController : MonoBehaviour
             }
             
         }
+    }
 
-        if (Input.GetKeyDown(KeyCode.S))
+    private void JumpAndSlideCondition()
+    {
+        float verticalInput = Input.GetAxisRaw("Vertical");
+
+        if (verticalInput == 1 && isPlayerGrounded && canJump)
         {
-            animator.speed += 0.1f;
+            canJump = false;
+            StartCoroutine(JumpLogic());
         }
 
+        if (verticalInput == -1 && canSlide)
+        {
+            canSlide = false;
+            StartCoroutine(SlideLogic());
+        }
     }
 
     IEnumerator OffsetLogic(float direction)
@@ -102,7 +105,7 @@ public class PlayerController : MonoBehaviour
 
         for (int i = 0; i < movingSmooth; i++)
         {
-            characterController.Move(Vector3.right * distance * direction);
+            _rb.transform.position += (Vector3.right * distance * direction);
 
             yield return new WaitForSeconds((offsetDuration / gameDifficultyCoefficient) / movingSmooth);
         }
@@ -112,67 +115,57 @@ public class PlayerController : MonoBehaviour
 
     IEnumerator OffsetAnimationLogic(float direction)
     {
-        //if (direction < 0)
-        //{
-        //    animator.SetTrigger("LeftClick");
-        //}
-        //if (direction > 0)
-        //{
-        //    animator.SetTrigger("RightClick");
-        //}
-
-        float angleOfTurn = (45f / movingSmooth) * direction;
+  
+        float angleOfTurn = (30f / 10) * direction;
         float quarterTurnDuration = (0.25f * (offsetDuration / gameDifficultyCoefficient));
 
-        for (int i = 0; i < movingSmooth; i++)
-        {
-            characterController.transform.Rotate(0f, angleOfTurn, 0f);
 
-            yield return new WaitForSeconds(quarterTurnDuration / movingSmooth);
+        for (int i = 0; i < 10; i++)
+        {
+            _rb.transform.Rotate(0f, angleOfTurn, 0f);
+
+            yield return new WaitForSeconds(quarterTurnDuration / 10);
         }
 
-        //yield return new WaitForSeconds(quarterTurnDuration);
+        yield return new WaitForSeconds(2 * quarterTurnDuration);
 
-        for (int i = 0; i < movingSmooth; i++)
+        for (int i = 0; i < 10; i++)
         {
-            characterController.transform.Rotate(0f, -angleOfTurn, 0f);
+            _rb.transform.Rotate(0f, -angleOfTurn, 0f);
 
-            yield return new WaitForSeconds(2 * quarterTurnDuration / movingSmooth);
+            yield return new WaitForSeconds(quarterTurnDuration / 10);
         }
 
     }
 
-    private void JumpCondition()
+    IEnumerator JumpLogic()
     {
-        if (Input.GetKeyDown(KeyCode.Space) && isPlayerGrounded)
-        {  
-             needJump = true;  
-        }
+        animator.SetTrigger("JumpClick");
+
+        canSlide = true;
+
+        _rb.AddForce(Vector3.up * jumpPower, ForceMode.Impulse);
+
+        yield return new WaitForSeconds(0.1f);
+
+        canJump = true;
     }
 
-    private void JumpAndGravityLogic()
+    IEnumerator SlideLogic()
     {
+        animator.SetTrigger("SlideClick");
 
-        if (playerVelocity.y < 0)
+        if (!isPlayerGrounded)
         {
-            if (isPlayerGrounded)
-            {
-                playerVelocity.y = 0f;
-            }
+            _rb.velocity = Vector3.zero;
+
+            _rb.AddForce(Vector3.down * jumpPower, ForceMode.Impulse);
         }
 
-        if (needJump)
-        {
-            animator.SetTrigger("JumpClick");
+        yield return new WaitForSeconds(slideAnimationClip.length);
 
-            playerVelocity.y += Mathf.Sqrt(jumpPower * -3.0f * gravityValue);
+        canSlide = true;
 
-            needJump = false;
-        }
-
-        playerVelocity.y += gravityValue * Time.fixedDeltaTime;
-        
-        characterController.Move(playerVelocity * Time.fixedDeltaTime);
     }
 
     private void FallingAnimationLogic()
@@ -187,23 +180,14 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void FreezePos_Z()
+    private bool IsPlayerGrounded()
     {
-        if (characterController.transform.position.z != player_zPosition)
+        if (Physics.Raycast(_rb.transform.position + Vector3.up * 0.1f, Vector3.down, 0.2f))
         {
-            Vector3 currentPlayerPosition = new Vector3(characterController.transform.position.x, characterController.transform.position.y, player_zPosition);
-            characterController.transform.position = currentPlayerPosition;
+            return true;
         }
+        else return false;
     }
-
-    //private bool IsPlayerGrounded()
-    //{
-    //    if (Physics.Raycast(transform.position, Vector3.down, 0.2f))
-    //    {
-    //        return true;
-    //    }
-    //    else return false;
-    //}
 
     /// <summary>
     /// Возвращает анимацию по названию из заданного аниматора

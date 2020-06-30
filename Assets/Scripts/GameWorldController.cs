@@ -1,16 +1,20 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 public class GameWorldController : MonoBehaviour
 {
-    [SerializeField] public GameObject startChunk;
-    [SerializeField] private float gameFieldRotationSpeed = 1;
+    [SerializeField] private GameObject startChunk;
     [SerializeField] private GameObject[] chunkPrefabs;
+    [SerializeField] private float gameFieldRotationSpeed = 1;
 
     private List<GameObject> spawnedChunks = new List<GameObject>();
     private Transform centerOfGameField;
+
+    [SerializeField] private Transform player;
+    private PlayerController playerControllerScript;
 
     //задел на разные длины чанков
     private readonly float degreeOfRotationOfChunk = 5f;
@@ -19,10 +23,13 @@ public class GameWorldController : MonoBehaviour
 
     void Start()
     {
+        playerControllerScript = player.GetComponent<PlayerController>();
+
         centerOfGameField = transform;
+
         spawnedChunks.Add(startChunk);
 
-        SpawnChunk(chunkPrefabs[1]);
+        SpawnNewChunk(chunkPrefabs[0]);
     }
 
 
@@ -30,40 +37,24 @@ public class GameWorldController : MonoBehaviour
     {
         GameFieldRotation();
 
-        SpawndAndDestroyChunk();
-
-        if (Input.GetKeyDown(KeyCode.Q))
-        {
-            Debug.Log(spawnedChunks[0].transform.eulerAngles.x);
-        }
-
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            SpawnChunk(chunkPrefabs[0]);
-        }
-
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            SpawnChunk(chunkPrefabs[1]);
-        }
+        SpawnAndDestroyChunksLogic();
     }
 
-    private void SpawndAndDestroyChunk()
+    private void SpawnAndDestroyChunksLogic()
     {
         if (spawnedChunks[0].transform.eulerAngles.x < destroyAngle)
         {
             DestroyOldestChunk();
-            SpawnChunk(chunkPrefabs[1]);
         }
 
         if (spawnedChunks[spawnedChunks.Count - 1].transform.eulerAngles.x < spawnAngle)
         {
-            SpawnChunk(chunkPrefabs[1]);
+            SpawnNewChunk(chunkPrefabs[1]);
         }
 
     }
 
-    private void SpawnChunk(GameObject chunkPrefab)
+    private void SpawnNewChunk(GameObject chunkPrefab)
     {
         GameObject newChunk = Instantiate(chunkPrefab, centerOfGameField.position, Quaternion.identity, centerOfGameField);
 
@@ -81,7 +72,7 @@ public class GameWorldController : MonoBehaviour
 
     private void GameFieldRotation()
     {
-        centerOfGameField.Rotate(Vector3.left * gameFieldRotationSpeed * Time.deltaTime);
+        centerOfGameField.Rotate(Vector3.left * gameFieldRotationSpeed * playerControllerScript.gameDifficultyCoefficient * Time.deltaTime);
     }
 }
 
