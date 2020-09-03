@@ -1,73 +1,65 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEditor.Animations;
 using UnityEngine;
-using UnityEngine.PlayerLoop;
 using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] private float offsetDistance = 1.5f;
     [SerializeField] private float offsetDuration = 0.5f;
     [SerializeField] private float jumpPower = 1.1f;
-    [SerializeField] private float movingSmooth = 60f;
+    [SerializeField] private float offsetAnimationTurnAngle = 60f;
 
-    private Rigidbody _rb;
-
+    private Rigidbody rb;
+     
     private Animator animator;
-    private AnimationClip slideAnimationClip;
+    private AnimationClip rollAnimationClip;
 
-    [SerializeField] private GameObject gameField;
-
-    //задел на повышение сложности по мере игры
-    [HideInInspector] public float gameDifficultyCoefficient = 1;
-
-    private float currentTrackPosition = 1; //0 - left, 1 - central, 2 - right
+    private float currentTrackPosition = 1; //0 - left, 1 - middle, 2 - right
 
     private bool isPlayerGrounded;
     private bool canOffset = true;
     private bool canJump = true;
-    private bool canSlide = true;
+    private bool canRoll = true;
 
     private CapsuleCollider highTriggerCollider;
 
 
     void Start()
     {
-        _rb = GetComponent<Rigidbody>();
+        rb = GetComponent<Rigidbody>();
         animator = GetComponent<Animator>();
 
-        slideAnimationClip = FindAnimationClipInAnimator(animator, "RunningRoll");
+        rollAnimationClip = FindAnimationClipInAnimator(animator, "RunningRoll");
 
         highTriggerCollider = GetComponent<CapsuleCollider>();
+
+        StateBus.Player_Transform = transform;
     }
 
     
     void Update()
     {
         isPlayerGrounded = IsPlayerGrounded();
-        
-        OffsetCondition();
-        JumpAndSlideCondition();
 
         FallingAnimationLogic();
 
         //задел на изменение сложности игры со временем
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            animator.speed += 0.01f;
-            gameDifficultyCoefficient += 0.1f;
-        }
+        
+        JumpAndSlideCondition();
+        OffsetCondition();
     }
 
-    private void OnTriggerEnter(Collider other)
-    {
-        StartCoroutine(GameOver());
-    }
+
+    //private void OnTriggerEnter(Collider other)
+    //{
+    //    if (!other.CompareTag("InteractObject"))
+    //    {
+    //        StartCoroutine(GameOver());
+    //    }
+    //}
 
     private void OffsetCondition()
     {
-        float direction = Input.GetAxisRaw("Horizontal");
+        float direction = StateBus.Input_Horizontal;
 
         if (direction != 0 && canOffset)
         {
@@ -91,7 +83,7 @@ public class PlayerController : MonoBehaviour
 
     private void JumpAndSlideCondition()
     {
-        float verticalInput = Input.GetAxisRaw("Vertical");
+        float verticalInput = StateBus.Input_Vertical;
 
         if (verticalInput == 1 && isPlayerGrounded && canJump)
         {
@@ -99,82 +91,91 @@ public class PlayerController : MonoBehaviour
             StartCoroutine(JumpLogic());
         }
 
-        if (verticalInput == -1 && canSlide)
+        if (verticalInput == -1 && canRoll)
         {
-            canSlide = false;
-            StartCoroutine(SlideLogic());
+            canRoll = false;
+            StartCoroutine(RollLogic());
         }
     }
 
-    IEnumerator OffsetLogic(float direction)
+    private IEnumerator OffsetLogic(float direction)
     {
-        float distance = offsetDistance / movingSmooth;
+        float speed = StateBus.Treadmill_LineWidht / (offsetDuration / StateBus.World_DifficultyCoefficient);
 
-        for (int i = 0; i < movingSmooth; i++)
+        float target = rb.transform.position.x + (StateBus.Treadmill_LineWidht * direction);
+
+        while (rb.transform.position.x != target)
         {
-            _rb.transform.position += (Vector3.right * distance * direction);
+            float xCoordinate = Mathf.MoveTowards(rb.transform.position.x, target, speed * Time.fixedDeltaTime);
+            rb.transform.position = new Vector3(xCoordinate, rb.transform.position.y, rb.transform.position.z);
 
-            yield return new WaitForSeconds((offsetDuration / gameDifficultyCoefficient) / movingSmooth);
+            yield return new WaitForFixedUpdate(); 
         }
 
         canOffset = true;
     }
 
-    IEnumerator OffsetAnimationLogic(float direction)
+    private IEnumerator OffsetAnimationLogic(float direction)
     {
   
-        float angleOfTurn = (30f / 10) * direction;
-        float quarterTurnDuration = (0.25f * (offsetDuration / gameDifficultyCoefficient));
+        float turnAngle = offsetAnimationTurnAngle * direction;
+
+        float quarterTurnDuration = (0.25f * (offsetDuration / StateBus.World_DifficultyCoefficient));
 
 
-        for (int i = 0; i < 10; i++)
+        for (float i = 0; i <= quarterTurnDuration + Time.fixedDeltaTime; i += Time.fixedDeltaTime)
         {
-            _rb.transform.Rotate(0f, angleOfTurn, 0f);
+            rb.transform.rotation = Quaternion.AngleAxis(Mathf.Lerp(0, turnAngle, i / quarterTurnDuration), Vector3.up);
 
-            yield return new WaitForSeconds(quarterTurnDuration / 10);
+            yield return new WaitForFixedUpdate();
         }
 
-        yield return new WaitForSeconds(2 * quarterTurnDuration);
 
-        for (int i = 0; i < 10; i++)
+        yield return new WaitForSeconds(quarterTurnDuration);
+
+
+        for (float i = 0; i <= quarterTurnDuration + Time.fixedDeltaTime; i += Time.fixedDeltaTime)
         {
-            _rb.transform.Rotate(0f, -angleOfTurn, 0f);
-
-            yield return new WaitForSeconds(quarterTurnDuration / 10);
+            
+            rb.transform.rotation = Quaternion.AngleAxis(Mathf.Lerp(turnAngle, 0, i / quarterTurnDuration), Vector3.up);
+            yield return new WaitForFixedUpdate();
         }
+
 
     }
 
-    IEnumerator JumpLogic()
+    private IEnumerator JumpLogic()
     {
         animator.SetTrigger("JumpClick");
-        _rb.AddForce(Vector3.up * jumpPower, ForceMode.Impulse);
 
-        StopCoroutine(SlideLogic());
+        rb.velocity = Vector3.zero;
+        rb.AddForce(Vector3.up * jumpPower, ForceMode.Impulse);
+
+        StopCoroutine(RollLogic());
         highTriggerCollider.enabled = true;
-        canSlide = true;
+        canRoll = true;
 
         yield return new WaitForSeconds(0.1f);
 
         canJump = true;
     }
 
-    IEnumerator SlideLogic()
+    private IEnumerator RollLogic()
     {
         highTriggerCollider.enabled = false;
 
-        animator.SetTrigger("SlideClick");
+        animator.SetTrigger("RollClick");
 
         if (!isPlayerGrounded)
         {
-            _rb.velocity = Vector3.zero;
+            rb.velocity = Vector3.zero;
 
-            _rb.AddForce(Vector3.down * jumpPower, ForceMode.Impulse);
+            rb.AddForce(Vector3.down * jumpPower, ForceMode.Impulse);
         }
 
-        yield return new WaitForSeconds(slideAnimationClip.length);
+        yield return new WaitForSeconds(rollAnimationClip.length / StateBus.World_DifficultyCoefficient);
 
-        canSlide = true;
+        canRoll = true;
         highTriggerCollider.enabled = true;
     }
 
@@ -192,16 +193,14 @@ public class PlayerController : MonoBehaviour
 
     private bool IsPlayerGrounded()
     {
-        if (Physics.Raycast(_rb.transform.position + Vector3.up * 0.1f, Vector3.down, 0.2f))
-        {
-            return true;
-        }
-        else return false;
+        return Physics.Raycast(rb.transform.position + Vector3.up * 0.1f, Vector3.down, 0.2f, 1, QueryTriggerInteraction.Ignore);
     }
 
-    IEnumerator GameOver()
+    private IEnumerator GameOver()
     {
-        gameField.GetComponent<GameWorldController>().gameFieldRotationSpeed = 0;
+        StateBus.World_IsGameActive = false;
+
+        StateBus.Input_IsInputWorks = false;
 
         animator.speed = 1;
 
@@ -234,3 +233,5 @@ public class PlayerController : MonoBehaviour
         return null;
     }
 }
+
+
