@@ -14,7 +14,7 @@ public static class Actions
 
     public static IEnumerator Roll(Rigidbody rb, float duration, float power)
     {
-        StateBus.Player_ReduceCollider += false;
+        StateBus.Player_DisableHighCollider += true;
 
         if (!StateBus.Player_IsGrounded)
         {
@@ -24,13 +24,13 @@ public static class Actions
 
         yield return new WaitForSeconds(duration / StateBus.World_DifficultyCoefficient);
 
-        StateBus.Player_ReduceCollider += true;
+        StateBus.Player_EnableHighCollider += true;
     }
 
     public static IEnumerator Shift(Rigidbody rb, SphereCollider collider, int direction, float shiftDuration)
     {
+        StateBus.Input_Disable += true;
         float target = CurrentLineCoordinate() + (StateBus.Treadmill_LineWidht * direction);
-        StateBus.Player_CurrentLine += direction;
         float speed = StateBus.Treadmill_LineWidht / (shiftDuration / StateBus.World_DifficultyCoefficient);
         while (!Mathf.Approximately(rb.transform.position.x, target))
         {
@@ -38,23 +38,25 @@ public static class Actions
             rb.transform.position = new Vector3(xCoordinate, rb.transform.position.y, rb.transform.position.z);
             if (CheckObstacle(rb, collider, direction))
             {
-                StateBus.Player_CurrentLine -= direction;
                 StateBus.Player_SideImpact += true;
-                break;
+                yield break;
             }
             yield return new WaitForFixedUpdate();
         }
+        StateBus.Player_CurrentLine += direction;
+        StateBus.Input_Enable += true;
     }
 
     public static IEnumerator ReturnBackToLine(Rigidbody rb, float speed)
     {
         float target = CurrentLineCoordinate();
-        while (rb.transform.position.x != target)
+        while (!Mathf.Approximately(rb.transform.position.x, target))
         {
             float xCoordinate = Mathf.MoveTowards(rb.transform.position.x, target, speed * Time.fixedDeltaTime);
             rb.transform.position = new Vector3(xCoordinate, rb.transform.position.y, rb.transform.position.z);
             yield return new WaitForFixedUpdate();
         }
+        StateBus.Input_Enable += true;
     }
 
     public static bool IsRigidbodyGrounded(Rigidbody rb)

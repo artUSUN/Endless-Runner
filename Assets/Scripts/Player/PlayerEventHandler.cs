@@ -31,7 +31,6 @@ public class PlayerEventHandler : MonoBehaviour
     {
         StartCoroutine(Actions.Roll(Player_Data.Rigidbody, Player_Data.RollAnimationDuration, Player_Data.JumpPower));
         Animations.SetTrigger("Roll", Player_Data.Animator);
-        Player_ReduceCollider += true;
         //PlayRollSound
     }
 

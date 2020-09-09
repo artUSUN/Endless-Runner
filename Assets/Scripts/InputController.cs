@@ -20,6 +20,17 @@ public class InputController : MonoBehaviour
         input.PlayMode.Test_IncreaseDifficulty.performed += context => StateBus.World_DifficultyChanged += true;
     }
 
+    private void Start()
+    {
+        input.Enable();
+    }
+
+    private void Update()
+    {
+        if (StateBus.Input_Enable) input.Enable();
+        if (StateBus.Input_Disable) input.Disable();
+    }
+
     private void OnEnable()
     {
         input.Enable();

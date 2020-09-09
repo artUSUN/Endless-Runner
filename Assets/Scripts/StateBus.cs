@@ -6,9 +6,9 @@ using UnityEngine;
 public static class StateBus
 {
     #region Custom states and events
-
     //Input
-    public static bool Input_IsInputWorks;
+    public static StateQueue<bool> Input_Enable;
+    public static StateQueue<bool> Input_Disable;
     public static StateQueue<int> Input_Horizontal;
     public static StateQueue<int> Input_Vertical;
 
@@ -18,15 +18,21 @@ public static class StateBus
     //Camera
 
 
+    //Global States
+    public static StateQueue<bool> GlobalState_Menu;
+    public static StateQueue<bool> GlobalState_Game;
+    public static StateQueue<bool> GlobalState_GameOver;
+
     //Player
     public static Transform Player_Transform;
     public static PlayerData Player_Data;
     public static bool Player_IsGrounded;
     public static StateQueue<bool> Player_ChangedFlagIsGrounded;
     public static int Player_CurrentLine;
-    public static StateQueue<bool> Player_ReduceCollider;
     public static LayerMask Player_WhatIsObstacle;
     public static StateQueue<bool> Player_SideImpact;
+    public static StateQueue<bool> Player_DisableHighCollider;
+    public static StateQueue<bool> Player_EnableHighCollider;
 
     //World
     public static float World_DifficultyCoefficient;

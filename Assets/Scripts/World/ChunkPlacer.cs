@@ -4,33 +4,39 @@ using UnityEngine;
 
 public class ChunkPlacer : MonoBehaviour
 {
+    [Header("Prefabs")]
     [SerializeField] private GameObject startChunk;
     [SerializeField] private GameObject[] chunkPrefabs;
+    [Header("Spawn & destroy settings")]
+    [SerializeField] private float lengthOfChunkInDegree = 5f;
+    [SerializeField] private float destroyAngle = 345f;
+    [SerializeField] private float spawnAngle = 20f;
+    [SerializeField] private bool reverceY = false;
 
-    private Transform world;
-    private List<GameObject> spawnedChunks = new List<GameObject>();
-
-    //задел на разные длины чанков
-    private readonly float degreeOfRotationOfChunk = 5f;
-    private readonly float destroyAngle = 345f;
-    private readonly float spawnAngle = 20f;
+    private Transform parent;
+    private readonly List<GameObject> spawnedChunks = new List<GameObject>();
+    private Quaternion startRotation;
 
     private void Start()
     {
-        world = transform;
-        
+        parent = transform;
+        startRotation = Quaternion.Euler(0f, parent.transform.rotation.eulerAngles.y, 0);
+
         SpawnChunk(startChunk);
         SpawnChunk(GetRandomChunk());
     }
 
     private void Update()
     {
-        if (spawnedChunks[spawnedChunks.Count - 1].transform.eulerAngles.x < spawnAngle)
+        bool spawnCondition = Mathf.Round(spawnedChunks[spawnedChunks.Count - 1].transform.eulerAngles.x) < spawnAngle;
+        if (reverceY) spawnCondition = Mathf.Round(spawnedChunks[spawnedChunks.Count - 1].transform.eulerAngles.x) > spawnAngle;
+
+        if (spawnCondition)
         {
             SpawnChunk(GetRandomChunk());
         }
 
-        if (spawnedChunks[0].transform.eulerAngles.x < destroyAngle)
+        if (Mathf.Round(spawnedChunks[0].transform.eulerAngles.x) == destroyAngle)
         {
             DestroyOldestChunk();
         }
@@ -38,10 +44,11 @@ public class ChunkPlacer : MonoBehaviour
 
     private void SpawnChunk(GameObject chunkPrefab)
     {
-        GameObject newChunk = Instantiate(chunkPrefab, world.position, Quaternion.Euler(-1, 0, 0), world);
+        GameObject newChunk = Instantiate(chunkPrefab, parent.position + Vector3.right * 50f, startRotation, parent);
 
-        if (spawnedChunks.Count > 0) newChunk.transform.rotation = spawnedChunks[spawnedChunks.Count - 1].transform.rotation * Quaternion.Euler(degreeOfRotationOfChunk, 0f, 0f);
+        if (spawnedChunks.Count > 0) newChunk.transform.rotation = spawnedChunks[spawnedChunks.Count - 1].transform.rotation * Quaternion.Euler(lengthOfChunkInDegree, 0f, 0f);
 
+        newChunk.transform.position = parent.position;
         spawnedChunks.Add(newChunk);
     }
 

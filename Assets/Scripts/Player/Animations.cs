@@ -14,9 +14,9 @@ public static class Animations
         animator.SetBool(name, state);
     }
 
-    public static IEnumerator TurnTo(Rigidbody rb, float angleOfTurn, float direction)
+    public static IEnumerator TurnTo(Rigidbody rb, float powerOfTurn, float direction)
     {
-        float turnAngle = angleOfTurn * direction;
+        float turnAngle = powerOfTurn * direction;
         float quarterTurnDuration = 0.25f * (StateBus.Player_Data.ShiftDuration / StateBus.World_DifficultyCoefficient);
 
         for (float i = 0; i <= quarterTurnDuration + Time.fixedDeltaTime; i += Time.fixedDeltaTime)
@@ -24,12 +24,17 @@ public static class Animations
             rb.transform.rotation = Quaternion.AngleAxis(Mathf.Lerp(0, turnAngle, i / quarterTurnDuration), Vector3.up);
             yield return new WaitForFixedUpdate();
         }
+        
+        rb.transform.rotation = Quaternion.Euler(0, turnAngle, 0);
+      
         yield return new WaitForSeconds(quarterTurnDuration);
         for (float i = 0; i <= quarterTurnDuration + Time.fixedDeltaTime; i += Time.fixedDeltaTime)
         {
             rb.transform.rotation = Quaternion.AngleAxis(Mathf.Lerp(turnAngle, 0, i / quarterTurnDuration), Vector3.up);
             yield return new WaitForFixedUpdate();
         }
+        
+        rb.transform.rotation = Quaternion.identity;
     }
 
     /// <summary>

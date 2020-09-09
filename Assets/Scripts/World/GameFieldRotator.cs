@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class GameFieldRotator : MonoBehaviour
 {
-    [SerializeField] private float startRotationSpeed  = 1;
+    [SerializeField] private float startRotationSpeed = 1f;
 
     private Transform world;
 
