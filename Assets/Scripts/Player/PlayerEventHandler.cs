@@ -16,8 +16,8 @@ public class PlayerEventHandler : MonoBehaviour
         if (Input_Vertical == 1 && Player_IsGrounded) DoJump();
         if (Input_Vertical == -1) DoRoll();
         if (Input_Horizontal != 0) DoShift(Input_Horizontal);
-        if (Player_SideImpact) DoReturnBack();
         if (Player_ChangedFlagIsGrounded) Animations.SetBool("IsGrounded", Player_Data.Animator, Player_IsGrounded);
+        if (GlobalState_GameOver) StopAllCoroutines();
     }
 
     private void DoJump()
@@ -39,13 +39,5 @@ public class PlayerEventHandler : MonoBehaviour
         StartCoroutine(Actions.Shift(Player_Data.Rigidbody, Player_Data.Collider, direction, Player_Data.ShiftDuration));
         StartCoroutine(Animations.TurnTo(Player_Data.Rigidbody, Player_Data.ShiftAnimationAngleOfTurn, direction));
         //PlayShiftSound
-    }
-
-    private void DoReturnBack()
-    {
-        StartCoroutine(Actions.ReturnBackToLine(Player_Data.Rigidbody, Player_Data.ReturnSpeedIfFailShift));
-        //animation
-        //particle
-        //sound
     }
 }

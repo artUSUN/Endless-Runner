@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEditorInternal;
 using UnityEngine;
@@ -38,7 +39,7 @@ public static class Actions
             rb.transform.position = new Vector3(xCoordinate, rb.transform.position.y, rb.transform.position.z);
             if (CheckObstacle(rb, collider, direction))
             {
-                StateBus.Player_SideImpact += true;
+                StateBus.Player_SideClash += true;
                 yield break;
             }
             yield return new WaitForFixedUpdate();
@@ -47,12 +48,13 @@ public static class Actions
         StateBus.Input_Enable += true;
     }
 
-    public static IEnumerator ReturnBackToLine(Rigidbody rb, float speed)
+
+    public static IEnumerator ReturnBackToLine(Rigidbody rb)
     {
         float target = CurrentLineCoordinate();
         while (!Mathf.Approximately(rb.transform.position.x, target))
         {
-            float xCoordinate = Mathf.MoveTowards(rb.transform.position.x, target, speed * Time.fixedDeltaTime);
+            float xCoordinate = Mathf.MoveTowards(rb.transform.position.x, target, StateBus.Player_Data.ReturnSpeedIfFailShift * Time.fixedDeltaTime);
             rb.transform.position = new Vector3(xCoordinate, rb.transform.position.y, rb.transform.position.z);
             yield return new WaitForFixedUpdate();
         }
@@ -62,6 +64,19 @@ public static class Actions
     public static bool IsRigidbodyGrounded(Rigidbody rb)
     {
         return Physics.Raycast(rb.transform.position + Vector3.up * 0.1f, Vector3.down, 0.2f, 1, QueryTriggerInteraction.Ignore);
+    }
+
+    public static IEnumerator MoveTo_Z(Rigidbody rb, float distantion, float duration)
+    {
+        float target = rb.position.z + distantion;
+        float speed = Math.Abs(distantion) / duration;
+        while (!Mathf.Approximately(rb.position.z, target))
+        {
+            float zCoordinate = Mathf.MoveTowards(rb.position.z, target, speed * Time.fixedDeltaTime);
+            rb.transform.position = new Vector3(rb.position.x, rb.position.y, zCoordinate);
+            yield return new WaitForFixedUpdate();
+        }
+        rb.transform.position = new Vector3(rb.position.x, rb.position.y, target);
     }
 
     private static bool CheckObstacle(Rigidbody rb, SphereCollider collider, float direction)

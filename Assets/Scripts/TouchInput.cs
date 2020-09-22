@@ -8,6 +8,7 @@ public class TouchInput : MonoBehaviour, IBeginDragHandler, IDragHandler
     [SerializeField] private float inputIgnoreSize = 10f;
     private bool isNeedRecordVector = false;
     private Vector2 input;
+    private bool isActive;
 
     public void OnBeginDrag(PointerEventData eventData)
     {
@@ -17,12 +18,9 @@ public class TouchInput : MonoBehaviour, IBeginDragHandler, IDragHandler
 
     public void OnDrag(PointerEventData eventData)
     {
-        
-
-        if (isNeedRecordVector)
+        if (isNeedRecordVector && isActive)
         {
             input += eventData.delta.normalized;
-            Debug.Log(input);
             if (Mathf.Abs(input.x) > inputIgnoreSize || Mathf.Abs(input.y) > inputIgnoreSize)
             {
                 ConvertToEvent();
@@ -44,5 +42,16 @@ public class TouchInput : MonoBehaviour, IBeginDragHandler, IDragHandler
             if (input.y > 0) StateBus.Input_Vertical += 1;
             else StateBus.Input_Vertical += -1;
         }
+    }
+
+    private void Start()
+    {
+        isActive = true;
+    }
+
+    private void Update()
+    {
+        if (StateBus.Input_Disable) isActive = false;
+        if (StateBus.Input_Enable) isActive = true;
     }
 }

@@ -16,7 +16,7 @@ public static class StateBus
     public static StateQueue<bool> Boost_Magnet;
 
     //Camera
-
+    public static StateQueue<bool> Camera_Shake;
 
     //Global States
     public static StateQueue<bool> GlobalState_Menu;
@@ -30,15 +30,20 @@ public static class StateBus
     public static StateQueue<bool> Player_ChangedFlagIsGrounded;
     public static int Player_CurrentLine;
     public static LayerMask Player_WhatIsObstacle;
-    public static StateQueue<bool> Player_SideImpact;
+    public static StateQueue<bool> Player_SideClash;
     public static StateQueue<bool> Player_DisableHighCollider;
     public static StateQueue<bool> Player_EnableHighCollider;
+    public static StateQueue<bool> Player_EnableRagdoll;
+
+    //Pursuer 
+    public static StateQueue<bool> Pursuer_CatchUp;
 
     //World
     public static float World_DifficultyCoefficient;
     public static StateQueue<bool> World_DifficultyChanged;
     public static bool World_IsGameActive;
-     
+    public static BarriersHandler World_BarriersHandler;
+
     //Treadmill
     public static float Treadmill_LineWidht;
     public static float Treadmill_LeftLineCoordinate;

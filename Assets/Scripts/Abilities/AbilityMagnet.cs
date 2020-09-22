@@ -25,6 +25,7 @@ public class AbilityMagnet : MonoBehaviour
             //sound
             timer = StartCoroutine(Timer());
         }
+        if (StateBus.GlobalState_GameOver && isActive) psEffect.Stop(); 
     }
 
     private void OnTriggerEnter(Collider other)
@@ -34,11 +35,7 @@ public class AbilityMagnet : MonoBehaviour
 
     private IEnumerator Timer()
     {
-        Debug.Log("Magnet Ability ON.");
-        DateTime dateTime = DateTime.Now;
         yield return new WaitForSeconds(StateBus.Player_Data.MagnetDuration);
-        TimeSpan timeSpan = dateTime - DateTime.Now;
-        Debug.Log("Magnet Ability OFF" + timeSpan);
         //sound off
         isActive = false;
         psEffect.Stop();

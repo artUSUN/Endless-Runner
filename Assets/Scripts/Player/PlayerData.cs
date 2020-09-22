@@ -6,15 +6,18 @@ public class PlayerData : MonoBehaviour
 {
     [Header("Movement options")]
     [SerializeField] private float shiftDuration = 0.5f;
-    [SerializeField] private float shiftAnimationAngleOfTurn = 60f;
-    [SerializeField] private float returnSpeedIfFailShift = 0.1f;
-    [SerializeField] private float sideCollisionCheckerLength = 0.1f;
     [SerializeField] private float jumpPower = 1.1f;
-    [SerializeField] private LayerMask whatIsObstacleForPlayer = 0;
+    [Header("Magnet Ability options")]
+    [SerializeField] private float sideClashRecovery = 5f;
     [Header("Magnet Ability options")]
     [SerializeField] private float magnetDuration = 10f;
     [SerializeField] private float magnetSpeedOfCoins = 1f;
+    [Header("Other options")]
+    [SerializeField] private float shiftAnimationAngleOfTurn = 60f;
+    [SerializeField] private float returnSpeedIfFailShift = 0.1f;
+    [SerializeField] private float sideCollisionCheckerLength = 0.1f;
 
+    [SerializeField] private LayerMask whatIsObstacleForPlayer = 0;
     public float ShiftDuration { get { return shiftDuration; } }
     public float ShiftAnimationAngleOfTurn { get { return shiftAnimationAngleOfTurn; } }
     public float JumpPower { get { return jumpPower; } }
@@ -22,6 +25,7 @@ public class PlayerData : MonoBehaviour
     public float SideCollisionCheckerLength { get { return sideCollisionCheckerLength; } }
     public float MagnetDuration { get { return magnetDuration; } }
     public float MagnetSpeedOfCoins { get { return magnetSpeedOfCoins; } }
+    public float SideClashRecovery { get { return sideClashRecovery; } }
 
     public Rigidbody Rigidbody { get; private set; }
     public Animator Animator { get; private set; }

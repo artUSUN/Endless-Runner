@@ -6,6 +6,7 @@ TagManager:
   tags:
   - InteractObject
   - Coin
+  - Sphere
   layers:
   - Default
   - TransparentFX
@@ -17,7 +18,7 @@ TagManager:
   - 
   - Player
   - InteractObject
-  - 
+  - Pursuer
   - 
   - 
   - 

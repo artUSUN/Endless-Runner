@@ -21,7 +21,12 @@ public class FrontCollisionChecker : MonoBehaviour
         if (StateBus.Player_DisableHighCollider) isHighColliderEnabled = false;
         if (StateBus.Player_EnableHighCollider) isHighColliderEnabled = true;
 
-        if (IsCollideWithObstacle()) StateBus.GlobalState_GameOver += true; 
+        if (IsCollideWithObstacle())
+        {
+            StateBus.GlobalState_GameOver += true;
+            Debug.Log("Game Over");
+            gameObject.SetActive(false);
+        }
     }
 
     private bool IsCollideWithObstacle()
