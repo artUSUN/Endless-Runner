@@ -7,11 +7,17 @@ public class PlayerData : MonoBehaviour
     [Header("Movement options")]
     [SerializeField] private float shiftDuration = 0.5f;
     [SerializeField] private float jumpPower = 1.1f;
-    [Header("Magnet Ability options")]
+    [Header("Side Clash options")]
     [SerializeField] private float sideClashRecovery = 5f;
     [Header("Magnet Ability options")]
     [SerializeField] private float magnetDuration = 10f;
     [SerializeField] private float magnetSpeedOfCoins = 1f;
+    [Header("Double Points Ability options")]
+    [SerializeField] private float doublePointsDuration = 10f;
+    [Header("Jet Pack Fly Ability options")]
+    [SerializeField] private float jetPackDuration = 10f;
+    [SerializeField] private float jetPackJumpRaiseDuration = 3f;
+    [SerializeField] private float jetPackJumpRaiseDistation = 3f;
     [Header("Other options")]
     [SerializeField] private float shiftAnimationAngleOfTurn = 60f;
     [SerializeField] private float returnSpeedIfFailShift = 0.1f;
@@ -26,6 +32,10 @@ public class PlayerData : MonoBehaviour
     public float MagnetDuration { get { return magnetDuration; } }
     public float MagnetSpeedOfCoins { get { return magnetSpeedOfCoins; } }
     public float SideClashRecovery { get { return sideClashRecovery; } }
+    public float JetPackDuration { get { return jetPackDuration; } }
+    public float JetPackJumpRaiseDuration { get { return jetPackJumpRaiseDuration; } }
+    public float JetPackJumpRaiseDistation { get { return jetPackJumpRaiseDistation; } }
+    public float DoublePointsDuration { get { return doublePointsDuration; } }
 
     public Rigidbody Rigidbody { get; private set; }
     public Animator Animator { get; private set; }

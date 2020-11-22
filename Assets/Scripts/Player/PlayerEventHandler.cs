@@ -9,13 +9,16 @@ public class PlayerEventHandler : MonoBehaviour
     private void Start()
     {
         Animations.SetBool("IsGrounded", Player_Data.Animator, Player_IsGrounded);
+        Input_IsVerticalWorks = true;
+        Input_IsHorizontalLocked = false;
     }
 
     private void Update()
     {
-        if (Input_Vertical == 1 && Player_IsGrounded) DoJump();
-        if (Input_Vertical == -1) DoRoll();
-        if (Input_Horizontal != 0) DoShift(Input_Horizontal);
+        if (Input_Vertical == 1 && Player_IsGrounded && Input_IsVerticalWorks) DoJump();
+        if (Input_Vertical == -1 && Input_IsVerticalWorks) DoRoll();
+        if (Input_Horizontal != 0 && Input_IsHorizontalLocked) DoShiftWhenHorLocked(Input_Horizontal);
+        if (Input_Horizontal != 0 && !Input_IsHorizontalLocked) DoShift(Input_Horizontal);
         if (Player_ChangedFlagIsGrounded) Animations.SetBool("IsGrounded", Player_Data.Animator, Player_IsGrounded);
         if (GlobalState_GameOver) StopAllCoroutines();
     }
@@ -39,5 +42,16 @@ public class PlayerEventHandler : MonoBehaviour
         StartCoroutine(Actions.Shift(Player_Data.Rigidbody, Player_Data.Collider, direction, Player_Data.ShiftDuration));
         StartCoroutine(Animations.TurnTo(Player_Data.Rigidbody, Player_Data.ShiftAnimationAngleOfTurn, direction));
         //PlayShiftSound
+    }
+
+    private void DoShiftWhenHorLocked(int direction)
+    {
+        int absNextLine = Math.Abs(Player_CurrentLine + direction);
+        if (absNextLine < 2)
+        {
+            StartCoroutine(Actions.ShiftWithoutSideCheking(Player_Data.Rigidbody, direction, Player_Data.ShiftDuration));
+            StartCoroutine(Animations.TurnTo(Player_Data.Rigidbody, Player_Data.ShiftAnimationAngleOfTurn, direction));
+            //PlayShiftSound
+        }
     }
 }

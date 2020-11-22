@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
-using UnityEditorInternal;
 using UnityEngine;
 
 public static class Actions
@@ -48,6 +46,20 @@ public static class Actions
         StateBus.Input_Enable += true;
     }
 
+    public static IEnumerator ShiftWithoutSideCheking(Rigidbody rb, int direction, float shiftDuration)
+    {
+        StateBus.Input_Disable += true;
+        float target = CurrentLineCoordinate() + (StateBus.Treadmill_LineWidht * direction);
+        float speed = StateBus.Treadmill_LineWidht / (shiftDuration / StateBus.World_DifficultyCoefficient);
+        while (!Mathf.Approximately(rb.transform.position.x, target))
+        {
+            float xCoordinate = Mathf.MoveTowards(rb.transform.position.x, target, speed * Time.fixedDeltaTime);
+            rb.transform.position = new Vector3(xCoordinate, rb.transform.position.y, rb.transform.position.z);
+            yield return new WaitForFixedUpdate();
+        }
+        StateBus.Player_CurrentLine += direction;
+        StateBus.Input_Enable += true;
+    }
 
     public static IEnumerator ReturnBackToLine(Rigidbody rb)
     {
@@ -78,6 +90,21 @@ public static class Actions
         }
         rb.transform.position = new Vector3(rb.position.x, rb.position.y, target);
     }
+
+    public static IEnumerator MoveTo_Y(Rigidbody rb, float distantion, float duration)
+    {
+        float target = rb.position.y + distantion;
+        float speed = Math.Abs(distantion) / duration;
+        while (!Mathf.Approximately(rb.position.y, target))
+        {
+            float zCoordinate = Mathf.MoveTowards(rb.position.y, target, speed * Time.fixedDeltaTime);
+            rb.transform.position = new Vector3(rb.position.x, zCoordinate, rb.position.z);
+            yield return new WaitForFixedUpdate();
+        }
+
+        rb.transform.position = new Vector3(rb.position.x, target, rb.position.z);
+    }
+
 
     private static bool CheckObstacle(Rigidbody rb, SphereCollider collider, float direction)
     {

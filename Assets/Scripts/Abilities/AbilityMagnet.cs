@@ -16,7 +16,7 @@ public class AbilityMagnet : MonoBehaviour
 
     private void Update()
     {
-        if (StateBus.Boost_Magnet)
+        if (StateBus.Boost.Value is Magnet)
         {
             if (isActive == false) isActive = true;
             else StopCoroutine(timer);

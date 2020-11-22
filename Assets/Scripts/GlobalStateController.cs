@@ -1,10 +1,10 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class GlobalStateController : MonoBehaviour
 {
     [SerializeField] private GameObject input;
+    [SerializeField] private Transform gameEndMenu;
+    [SerializeField] private float enableGameEndMenuDelay = 1f;
     
     private void Update()
     {
@@ -21,7 +21,14 @@ public class GlobalStateController : MonoBehaviour
         StateBus.Player_EnableRagdoll += true;
         StateBus.Input_Disable += true;
         StateBus.World_IsGameActive = false;
+        StateBus.GameMenu.gameObject.SetActive(false);
+        Invoke(nameof(ActivateGameEndMenu), enableGameEndMenuDelay);
 
         //StateBus.Player_Data.Rigidbody.constraints = RigidbodyConstraints.FreezeRotation;
+    }
+
+    private void ActivateGameEndMenu()
+    {
+        gameEndMenu.gameObject.SetActive(true);
     }
 }

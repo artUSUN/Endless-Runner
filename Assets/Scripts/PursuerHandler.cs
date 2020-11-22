@@ -10,14 +10,13 @@ public class PursuerHandler : MonoBehaviour
     [SerializeField] private float catchUpDistance= 1f;
     [SerializeField] private float catchUpTimeInSec = 1f;
     [SerializeField] private float leaveTimeInSec = 2f;
-    [Header("Beat Player options")]
-    [SerializeField] private float beatMoveToPlayerDuration = 0.1f;
+    [SerializeField] private float delayBeforeJump = 0.1f;
     [Header("Links")]
     [SerializeField] private Renderer[] meshes;
-    
 
     private Animator animator;
     private Rigidbody rb;
+    private Vector3 startPos;
 
     private void Start()
     {
@@ -25,12 +24,13 @@ public class PursuerHandler : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         Animations.SetBool("IsGrounded", animator, true);
         SetMeshActive(false);
+        startPos = transform.position;
     }
 
     private void Update()
     {
-        if (Input_Vertical == 1 && Player_IsGrounded) DoJump();
-        if (Input_Vertical == -1) DoRoll();
+        if (Input_Vertical == 1 && Player_IsGrounded && Input_IsVerticalWorks) StartCoroutine(DoJump());
+        if (Input_Vertical == -1 && Input_IsVerticalWorks) DoRoll();
 
         if (Player_ChangedFlagIsGrounded) Animations.SetBool("IsGrounded", animator, Player_IsGrounded);
         if (GlobalState_GameOver)
@@ -42,7 +42,16 @@ public class PursuerHandler : MonoBehaviour
 
         if (Pursuer_CatchUp) StartCoroutine(DoCatchUp());
 
+        if (Boost.Value is JetPack) StartCoroutine(FreezeForSec(Player_Data.JetPackDuration));
+
         FollowToPlayer_xPos();
+    }
+
+    private IEnumerator FreezeForSec(float time)
+    {
+        Freeze(true);
+        yield return new WaitForSeconds(time);
+        Freeze(false);
     }
 
     private IEnumerator DoCatchUp()
@@ -57,8 +66,9 @@ public class PursuerHandler : MonoBehaviour
     }
 
 
-    private void DoJump()
+    private IEnumerator DoJump()
     {
+        yield return new WaitForSeconds(delayBeforeJump / StateBus.World_DifficultyCoefficient);
         StartCoroutine(Actions.Jump(rb, Player_Data.JumpPower));
         Animations.SetTrigger("Jump", animator);
     }
@@ -73,7 +83,7 @@ public class PursuerHandler : MonoBehaviour
     {
         //sound
         Animations.SetTrigger("Beat", animator);
-        GetComponent<MoveToTarget_zPos>().enabled = true;
+        GetComponent<MoveToTarget_yzPos>().enabled = true;
         //rb.isKinematic = true;
         //GetComponent<SphereCollider>().isTrigger = true;
     }
@@ -92,11 +102,17 @@ public class PursuerHandler : MonoBehaviour
         }
     }
 
+    private void Freeze(bool flag)
+    {
+        rb.isKinematic = flag;
+        GetComponent<SphereCollider>().isTrigger = flag;
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Player"))
         {
-            GetComponent<MoveToTarget_zPos>().enabled = false;
+            GetComponent<MoveToTarget_yzPos>().enabled = false;
         }
     }
 }

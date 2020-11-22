@@ -1,31 +1,58 @@
-﻿using System.Collections;
+﻿using Lean.Touch;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class TouchInput : MonoBehaviour, IBeginDragHandler, IDragHandler
+public class TouchInput : MonoBehaviour
 {
     [SerializeField] private float inputIgnoreSize = 10f;
     private bool isNeedRecordVector = false;
     private Vector2 input;
     private bool isActive;
 
-    public void OnBeginDrag(PointerEventData eventData)
+    #region MonoBehaviour
+    private void Start()
     {
+        isActive = true;
+    }
+
+    private void Update()
+    {
+        if (StateBus.Input_Disable) isActive = false;
+        if (StateBus.Input_Enable) isActive = true;
+    }
+
+    private void OnEnable()
+    {
+        LeanTouch.OnFingerDown += OnFingerDown;
+        LeanTouch.OnFingerUpdate += OnFingerUpdate;
+    }
+
+    private void OnDisable()
+    {
+        LeanTouch.OnFingerDown -= OnFingerDown;
+        LeanTouch.OnFingerUpdate -= OnFingerUpdate;
+    }
+    #endregion
+
+    public void OnFingerDown(LeanFinger finger)
+    {
+        
         input = Vector2.zero;
         isNeedRecordVector = true;
     }
 
-    public void OnDrag(PointerEventData eventData)
+    public void OnFingerUpdate(LeanFinger finger)
     {
         if (isNeedRecordVector && isActive)
         {
-            input += eventData.delta.normalized;
+            input += finger.ScaledDelta;
             if (Mathf.Abs(input.x) > inputIgnoreSize || Mathf.Abs(input.y) > inputIgnoreSize)
             {
                 ConvertToEvent();
                 isNeedRecordVector = false;
-                Debug.Log("Input off");
+                
             }
         }
     }
@@ -44,14 +71,5 @@ public class TouchInput : MonoBehaviour, IBeginDragHandler, IDragHandler
         }
     }
 
-    private void Start()
-    {
-        isActive = true;
-    }
 
-    private void Update()
-    {
-        if (StateBus.Input_Disable) isActive = false;
-        if (StateBus.Input_Enable) isActive = true;
-    }
 }

@@ -11,17 +11,28 @@ public static class StateBus
     public static StateQueue<bool> Input_Disable;
     public static StateQueue<int> Input_Horizontal;
     public static StateQueue<int> Input_Vertical;
+    public static bool Input_IsVerticalWorks;
+    public static bool Input_IsHorizontalLocked;
 
     //Boosts
-    public static StateQueue<bool> Boost_Magnet;
+    public static float Boost_TimeFromLastCatchedUp;
+    public static StateQueue<InteractObject> Boost;
+
+    //Coin
+    public static StateQueue<int> Coin_Add;
 
     //Camera
+    public static CameraHandler Camera_Script;
     public static StateQueue<bool> Camera_Shake;
 
     //Global States
-    public static StateQueue<bool> GlobalState_Menu;
+    public static StateQueue<bool> GlobalState_MainMenu;
     public static StateQueue<bool> GlobalState_Game;
     public static StateQueue<bool> GlobalState_GameOver;
+
+    //UI
+    public static StateQueue<bool> UI_Settings;
+    public static GameMenu GameMenu;
 
     //Player
     public static Transform Player_Transform;
@@ -34,6 +45,9 @@ public static class StateBus
     public static StateQueue<bool> Player_DisableHighCollider;
     public static StateQueue<bool> Player_EnableHighCollider;
     public static StateQueue<bool> Player_EnableRagdoll;
+
+    //Player Prefs Handler
+    public static PlayerPrefsHandler Prefs;
 
     //Pursuer 
     public static StateQueue<bool> Pursuer_CatchUp;

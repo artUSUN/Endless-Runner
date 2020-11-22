@@ -1,23 +1,20 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Magnet : MonoBehaviour
+public class Magnet : InteractObject
 {
-    [SerializeField] private ParticleSystem TakenEffect;
-    [SerializeField] private ParticleSystem FramingEffect;
+    [SerializeField] private ParticleSystem framingEffect;
     [SerializeField] private GameObject mesh;
+    [SerializeField] private Sprite icon;
 
-    private bool isWorked = false;
-    private void OnTriggerEnter(Collider other)
+
+    public override Sprite Icon { get { return icon; } }
+    public override void WhenCatched()
     {
-        if (other.CompareTag("Player") && !isWorked)
-        {
-            StateBus.Boost_Magnet += true;
-            TakenEffect.Play();
-            FramingEffect.gameObject.SetActive(false);
-            mesh.SetActive(false);
-            isWorked = true;
-        }
+        StateBus.Boost += this;
+        mesh.SetActive(false);
+        framingEffect.gameObject.SetActive(false);
     }
 }
